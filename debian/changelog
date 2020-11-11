@@ -1,0 +1,5 @@
+dpdk-kmods (0~20201113+git-1) experimental; urgency=medium
+
+  * Initial packaging (Closes: #974216)
+
+ -- Luca Boccassi <bluca@debian.org>  Thu, 19 Nov 2020 16:28:36 +0000
