@@ -1,3 +1,9 @@
+dpdk-kmods (0~20201113+git-2) unstable; urgency=high
+
+  * Upload to unstable.
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 10 Jan 2021 16:06:01 +0000
+
 dpdk-kmods (0~20201113+git-1) experimental; urgency=medium
 
   * Initial packaging (Closes: #974216)
