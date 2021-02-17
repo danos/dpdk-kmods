@@ -3,8 +3,52 @@
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/default.mk
 
+# Support Vyatta vendor specific options
+ifeq ($(shell dpkg-vendor --is Vyatta && echo yes),yes)
+    ifeq (,$(filter ksrc=%,$(DEB_BUILD_OPTIONS)))
+        DEB_BUILD_OPTIONS += kernel_modules ksrc=/lib/modules/$(shell ls -1 /lib/modules | sort | head -1)
+    endif
+endif
+
+# kernel_modules can be passed via DEB_BUILD_OPTIONS to enable building the
+# optional binary kernel modules package. By default it will be built against
+# the current kernel, or ksrc can be passed with a path to the target kernel
+# sources instead.
+ifeq (,$(findstring kernel_modules,$(DEB_BUILD_OPTIONS)))
+DPDK_CONFIG_BUILD_KMOD=false
+KSRC=""
+else
+ifneq (,$(filter ksrc=%,$(DEB_BUILD_OPTIONS)))
+    KSRC := $(patsubst ksrc=%,%,$(filter ksrc=%,$(DEB_BUILD_OPTIONS)))
+else
+    KSRC := /lib/modules/$(shell LIST=$$(ls /lib/modules/); for dir in $$LIST; do test -d /lib/modules/$$dir/build && echo $$dir; done | sort -V | tail -n1)
+endif
+
+KVERS := $(shell perl debian/kernel-version $(KSRC)/build)
+export KVERS
+export MODULE_CFLAGS=-fno-PIE
+
+DPDK_CONFIG_BUILD_KMOD=true
+
+# Since the binary module package is generated at build time depending on the
+# local kernel version, we have to append the new package in d/control.
+# We cannot use a separate control file since that wouldn't work with
+# dpkg-genchanges, and also would require a lot of overrides for debhelpers.
+get_built_using ?= $(filter-out (=),$(shell dpkg-query -f='$${source:Package} (=$${source:Version})' -W $1))
+
+build:
+	@if [ x"$(KVERS)" = x ] ; then \
+	    echo 'No version in $(KSRC)/build/include/linux/version.h' >&2; \
+	    exit 1; \
+	fi
+	sh debian/prep-modules $(KSRC)/build
+	cat debian/control.modules >> debian/control
+	make -C $(KSRC)/build M=$(PWD)/linux/igb_uio modules
+	dh $@ --with dkms,signobs
+endif
+
 %:
-	dh $@ --with dkms
+	dh $@ --with dkms,signobs
 
 override_dh_install:
 	dh_install -p dpdk-kmods-dkms linux/igb_uio/* \
@@ -12,3 +56,18 @@ override_dh_install:
 
 override_dh_dkms:
 	dh_dkms -V $(DEB_VERSION_UPSTREAM)
+
+override_dh_auto_install-arch:
+	dh_auto_install
+ifneq (,$(KVERS))
+	make -C $(KSRC)/build M=$(PWD)/linux/igb_uio modules_install INSTALL_MOD_PATH=$(PWD)/debian/tmp INSTALL_MOD_DIR=extra/dpdk
+	make -C $(KSRC)/build M=$(PWD)/linux/igb_uio clean
+	# Package: dpdk-rte-igb-uio-kmod-<kernel version>
+	dh_install -p dpdk-rte-igb-uio-kmod-$(KVERS) lib/modules
+endif
+
+
+override_dh_auto_clean:
+	rm -rf debian/build debian/tmp debian/dpdk-rte-igb-uio-kmod-* \
+		debian/control.modules debian/VERSION
+	sed -i '/Package: dpdk-rte-igb-uio-kmod-/,/`tail -n1 debian/control.modules.in`/d' debian/control

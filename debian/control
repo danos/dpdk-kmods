@@ -4,6 +4,8 @@ Maintainer: Debian DPDK Maintainers <pkg-dpdk-devel@lists.alioth.debian.org>
 Uploaders: Luca Boccassi <bluca@debian.org>,
            Christian Ehrhardt <christian.ehrhardt@canonical.com>,
 Build-Depends: debhelper-compat (= 12), dkms,
+               linux-vyatta-kbuild | linux-headers-amd64 [amd64] | linux-headers,
+               dh-signobs,
 Standards-Version: 4.5.1
 Rules-Requires-Root: no
 Section: kernel

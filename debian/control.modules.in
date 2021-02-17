@@ -1,0 +1,32 @@
+
+Package: dpdk-rte-igb-uio-kmod-#KVERS#
+Section: kernel
+Architecture: amd64 arm64 i386
+Depends: linux-image-#KVERS#-signed #KDREV# | linux-image-#KVERS#-unsigned #KDREV# | linux-image-#KVERS# #KDREV#
+Provides: dpdk-rte-igb-uio-kmod,
+Conflicts: dpdk-rte-igb-uio-dkms,
+Built-Using: ${built:using:kernel},
+Description: Data Plane Development Kit (rte kni, igb uio modules)
+ DPDK is a set of libraries for fast packet processing. Applications run
+ in user-space and communicate directly with dedicated network interfaces.
+ This package contains the source code for the igb_uio kernel module.
+ .
+ This package provides the kernel drivers for userspace networking.
+ Includes Intel DPDK kernel modules.
+
+Package: dpdk-modules-#KVERS#
+Section: kernel
+Architecture: all
+Depends: linux-image-#KVERS#-signed #KDREV# | linux-image-#KVERS#-unsigned #KDREV# | linux-image-#KVERS# #KDREV#,
+         dpdk-rte-igb-uio-kmod-#KVERS#,
+         dpdk-rte-kni-kmod-#KVERS#,
+Provides: dpdk-modules,
+Conflicts: dpdk-igb-uio-dkms,
+           dpdk-rte-kni-dkms,
+Built-Using: ${built:using:kernel},
+Description: Data Plane Development Kit (rte kni, igb uio modules)
+ DPDK is a set of libraries for fast packet processing. Applications run
+ in user-space and communicate directly with dedicated network interfaces.
+ .
+ This metapackage provides the kernel drivers for userspace networking.
+ Includes Intel DPDK kernel modules.
