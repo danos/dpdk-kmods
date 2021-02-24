@@ -1,3 +1,14 @@
+dpdk-kmods (0~20201113+git-2vyatta1) unstable; urgency=medium
+
+  [ Pallavi Kadam ]
+  * windows/netuio: add Intel 40GbE device IDs
+
+  [ Charles (Chas) Williams ]
+  * Merge tag 'debian/0_20201113+git-2' from salsa
+  * debian: build signed kernel module (Bugfix: VRVDR-54129)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Wed, 24 Feb 2021 16:01:05 -0500
+
 dpdk-kmods (0~20201113+git-2) unstable; urgency=high
 
   * Upload to unstable.
